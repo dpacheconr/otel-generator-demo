@@ -1,20 +1,5 @@
 version: "2"
 services:
-  # Jaeger
-  jaeger-all-in-one:
-    image: jaegertracing/all-in-one:latest
-    restart: always
-    ports:
-      - "16686:16686"
-      - "14268"
-      - "14250"
-
-  # Zipkin
-  zipkin-all-in-one:
-    image: openzipkin/zipkin:latest
-    restart: always
-    ports:
-      - "9411:9411"
   demo-client:
     build:
       dockerfile: Dockerfile
@@ -35,12 +20,3 @@ services:
       - OTEL_EXPORTER_OTLP_ENDPOINT=docker.for.mac.localhost:4317
     ports:
       - "7080"
-
-  prometheus:
-    container_name: prometheus
-    image: prom/prometheus:latest
-    restart: always
-    volumes:
-      - ./prometheus.yaml:/etc/prometheus/prometheus.yml
-    ports:
-      - "9090:9090"

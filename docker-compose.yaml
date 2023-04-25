@@ -20,3 +20,14 @@ services:
       - OTEL_EXPORTER_OTLP_ENDPOINT=docker.for.mac.localhost:4317
     ports:
       - "7080"
+    depends_on:
+      - log-generator
+
+  log-generator:
+    platform: linux/arm64
+    build:
+      dockerfile: Dockerfile
+      context: ./loggen
+    restart: always
+    environment:
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://docker.for.mac.localhost:4317

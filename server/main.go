@@ -31,8 +31,7 @@ import (
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
-	"go.opentelemetry.io/otel/metric/global"
-	"go.opentelemetry.io/otel/metric/instrument"
+	metric "go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/propagation"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/resource"
@@ -81,7 +80,7 @@ func initProvider() func() {
 			),
 		),
 	)
-	global.SetMeterProvider(meterProvider)
+	otel.SetMeterProvider(meterProvider)
 
 	traceClient := otlptracegrpc.NewClient(
 		otlptracegrpc.WithInsecure(),
@@ -124,12 +123,12 @@ func main() {
 	shutdown := initProvider()
 	defer shutdown()
 
-	meter := global.Meter("demo-server-meter")
+	meter := otel.Meter("demo-server-meter")
 	serverAttribute := attribute.String("server-attribute", "foo")
 	commonLabels := []attribute.KeyValue{serverAttribute}
 	requestCount, _ := meter.Int64Counter(
 		"demo_server/request_counts",
-		instrument.WithDescription("The number of requests received"),
+		metric.WithDescription("The number of requests received"),
 	)
 
 	// create a handler wrapped in OpenTelemetry instrumentation
@@ -151,7 +150,7 @@ func main() {
 		}
 		time.Sleep(time.Duration(sleep) * time.Millisecond)
 		ctx := req.Context()
-		requestCount.Add(ctx, 1, commonLabels...)
+		requestCount.Add(ctx, 1, metric.WithAttributes(commonLabels...))
 		span := trace.SpanFromContext(ctx)
 		bag := baggage.FromContext(ctx)
 
